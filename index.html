@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Accident Prediction</title>
+  <link href='https://fonts.googleapis.com/css?family=Pacifico' rel='stylesheet' type='text/css'>
+  <link href='https://fonts.googleapis.com/css?family=Arimo' rel='stylesheet' type='text/css'>
+  <style>
+    body {
+      font-family: 'Arimo', sans-serif;
+      background-color: #28a745; /* Light green background */
+      margin: 0;
+      padding: 20px;
+      color: #fff; /* White text for better contrast */
+    }
+    .container {
+      width: 50%;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+    }
+    input[type="text"], input[type="file"], button {
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #5cb85c;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #4cae4c;
+    }
+    .file-container {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .file-container input[type="text"] {
+      flex: 1;
+    }
+    .file-container button {
+      position: absolute;
+      right: 0;
+      background: #5cb85c; /* Green background */
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      cursor: pointer;
+      border-radius: 0 5px 5px 0;
+    }
+    .file-container input[type="file"] {
+      position: absolute;
+      right: 0;
+      width: 100px;
+      opacity: 0;
+      height: 48px;
+      cursor: pointer;
+    }
+    img.display-image {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 10px auto;
+    }
+    #predictionText {
+      font-weight: bold; /* Make text bold */
+      font-size: 24px; /* Increase font size */
+    }
+    .flashing-text {
+      animation: flash 1s linear infinite;
+    }
+    .non-accident-text {
+      color: green; /* Non-accident text in green */
+    }
+    @keyframes flash {
+      0%, 100% { color: red; }
+      50% { color: white; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1> Accident Detection System </h1>
+  <form action="{{ url_for('predict') }}" method="post" enctype="multipart/form-data">
+    <div class="file-container">
+      <input type="text" id="fileText" placeholder="No file selected" readonly>
+      <button type="button">Choose File</button> <!-- Visible button for aesthetics -->
+      <input type="file" name="file" required="required" id="fileInput" onchange="storeImage(this); updateFileName(this);">
+    </div>
+    <button type="submit">Predict</button>
+  </form>
+  <br>
+  <br>
+  <div id="predictionText">{{ prediction_text | safe }}</div>
+  <img id="outputImage" style="max-width: 100%; display: none;">
+</div>
+
+<script>
+  function storeImage(input) {
+    if (input.files && input.files[0]) {
+      var reader = new FileReader();
+      reader.onload = function (e) {
+        localStorage.setItem('uploadedImage', e.target.result);
+      };
+      reader.readAsDataURL(input.files[0]);
+    }
+  }
+
+  function updateFileName(input) {
+    var fileNameBox = document.getElementById('fileText');
+    fileNameBox.value = input.files[0].name;
+  }
+
+  document.addEventListener("DOMContentLoaded", function() {
+    const predictionText = document.querySelector('#predictionText');
+    const outputImage = document.getElementById('outputImage');
+    const imageData = localStorage.getItem('uploadedImage');
+
+    if (imageData) {
+      outputImage.src = imageData;
+      outputImage.style.display = 'block';
+      localStorage.removeItem('uploadedImage');
+    }
+
+    if (predictionText.innerText.includes('Accident')) {
+      predictionText.classList.add('flashing-text');
+      predictionText.classList.remove('non-accident-text');
+    } else {
+      predictionText.classList.remove('flashing-text');
+      predictionText.classList.add('non-accident-text');
+    }
+  });
+</script>
+</body>
+</html>
